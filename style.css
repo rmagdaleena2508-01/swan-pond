@@ -1,0 +1,138 @@
+:root {
+  --glass: rgba(14, 26, 24, 0.42);
+  --glass-strong: rgba(14, 26, 24, 0.62);
+  --line: rgba(232, 238, 228, 0.16);
+  --mist: #eceee6;
+  --reed: #b3bda5;
+  --lantern: #d4f25a;
+  --dusk: #f0a57c;
+  --moon: #cbd5f2;
+  --display: 'Italiana', 'Cormorant Garamond', Georgia, serif;
+  --ui: 'Hanken Grotesk', system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --t: 200ms;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0f1c1a; color: var(--mist); font-family: var(--ui); }
+body { -webkit-font-smoothing: antialiased; touch-action: none; user-select: none; -webkit-user-select: none; }
+canvas#scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--lantern); outline-offset: 3px; }
+
+#ui { position: fixed; inset: 0; pointer-events: none; transition: opacity 300ms var(--ease-out); }
+#ui > * { pointer-events: auto; }
+body.ui-hidden #ui { opacity: 0; }
+body.ui-hidden #ui > * { pointer-events: none; }
+
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(14px) saturate(1.15);
+  -webkit-backdrop-filter: blur(14px) saturate(1.15);
+}
+
+/* Title */
+.brand { position: absolute; top: max(22px, env(safe-area-inset-top)); left: max(28px, env(safe-area-inset-left)); pointer-events: none; text-shadow: 0 1px 18px rgba(0, 0, 0, 0.35); }
+.brand h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(34px, 4.4vw, 58px); letter-spacing: 0.04em; line-height: 1; }
+.clock { margin: 10px 0 0 2px; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--reed); display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+.clock .sep { width: 18px; height: 1px; background: currentColor; opacity: 0.6; }
+
+/* Signature: the sky dial. The sun travels its real path; below the line is night. */
+.sky-dial { position: absolute; top: max(16px, env(safe-area-inset-top)); right: max(20px, env(safe-area-inset-right)); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+#dial { width: 128px; height: 128px; cursor: grab; touch-action: none; border-radius: 50%; }
+#dial:active { cursor: grabbing; }
+#dial .orbit { fill: none; stroke: rgba(236, 238, 230, 0.18); stroke-width: 1; stroke-dasharray: 2 4; }
+#dial .orbit.day { stroke: rgba(240, 165, 124, 0.55); stroke-dasharray: none; }
+#dial .horizon { stroke: rgba(236, 238, 230, 0.55); stroke-width: 1; }
+#dial .sun { fill: var(--dusk); filter: drop-shadow(0 0 6px rgba(240, 165, 124, 0.8)); transition: opacity var(--t) var(--ease-out); }
+#dial .moon { fill: var(--moon); filter: drop-shadow(0 0 5px rgba(203, 213, 242, 0.7)); }
+.dial-actions { display: flex; gap: 6px; }
+
+/* Chips */
+.chip {
+  display: inline-flex; align-items: center; gap: 9px;
+  min-height: 44px; padding: 0 16px;
+  border-radius: 999px; border: 1px solid var(--line);
+  background: var(--glass);
+  backdrop-filter: blur(14px) saturate(1.15); -webkit-backdrop-filter: blur(14px) saturate(1.15);
+  font-size: 14px; font-weight: 500; letter-spacing: 0.01em; cursor: pointer; white-space: nowrap;
+  transition: background var(--t) var(--ease-out), border-color var(--t) var(--ease-out), color var(--t) var(--ease-out), transform 120ms var(--ease-out);
+}
+.chip svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.chip:hover { background: var(--glass-strong); border-color: rgba(232, 238, 228, 0.3); }
+.chip:active { transform: scale(0.97); }
+.chip[aria-pressed="true"] { color: #10180f; background: var(--lantern); border-color: var(--lantern); }
+.chip.small { min-height: 34px; padding: 0 12px; font-size: 12px; }
+#btnPlay[aria-pressed="true"] { color: var(--mist); background: var(--glass); border-color: var(--line); }
+
+.controls { position: absolute; right: max(20px, env(safe-area-inset-right)); top: 50%; transform: translateY(-46%); display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.controls .rule { width: 28px; height: 1px; background: var(--line); margin: 4px 14px; }
+.menu-toggle { display: none; }
+
+/* Swan cards */
+.flock { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(720px, calc(100% - 32px)); }
+.flock-label { display: flex; justify-content: space-between; align-items: baseline; margin: 0 6px 8px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--reed); text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4); }
+.flock-label .count { letter-spacing: 0.04em; text-transform: none; font-variant-numeric: tabular-nums; }
+.cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 8px; border-radius: 22px; background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(16px) saturate(1.15); -webkit-backdrop-filter: blur(16px) saturate(1.15); }
+.card {
+  display: grid; grid-template-rows: auto auto auto; justify-items: start; text-align: left;
+  padding: 10px 12px 12px; border-radius: 15px; border: 1px solid transparent; background: transparent;
+  cursor: grab; touch-action: none;
+  transition: background var(--t) var(--ease-out), border-color var(--t) var(--ease-out), opacity var(--t) var(--ease-out);
+}
+.card:hover { background: rgba(236, 238, 230, 0.07); border-color: var(--line); }
+.card:active { cursor: grabbing; }
+.card[disabled] { opacity: 0.4; cursor: not-allowed; }
+.sil { width: 64px; height: 40px; margin-bottom: 6px; overflow: visible; }
+.sil .w { stroke: rgba(160, 200, 190, 0.45); stroke-width: 1; }
+.sil .n { fill: none; stroke-width: 3.4; stroke-linecap: round; }
+.sil .b { stroke: rgba(0, 0, 0, 0.25); stroke-width: 0.6; }
+.card .name { font-family: var(--display); font-size: 20px; white-space: nowrap; letter-spacing: 0.02em; line-height: 1.1; }
+.card .trait { margin-top: 3px; font-size: 12px; color: var(--reed); }
+
+.hint {
+  position: absolute; left: 50%; bottom: calc(max(18px, env(safe-area-inset-bottom)) + 178px); transform: translateX(-50%);
+  margin: 0; max-width: min(480px, calc(100% - 32px)); padding: 10px 16px; border-radius: 14px;
+  font-size: 13px; line-height: 1.45; text-align: center; color: var(--mist);
+  background: var(--glass); border: 1px solid var(--line); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  pointer-events: none !important; transition: opacity 300ms var(--ease-out);
+}
+.hint.gone { opacity: 0; }
+
+.show-ui { position: fixed; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); opacity: 0; pointer-events: none; transition: opacity 300ms var(--ease-out); }
+body.ui-hidden .show-ui.visible { opacity: 1; pointer-events: auto; }
+
+.ghost { position: fixed; left: 0; top: 0; width: 80px; height: 50px; pointer-events: none; opacity: 0; transform: translate(-50%, -60%); transition: opacity 120ms var(--ease-out); filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45)); }
+.ghost.on { opacity: 0.95; }
+.ghost svg { width: 100%; height: 100%; overflow: visible; }
+
+.fallback { position: fixed; inset: 0; display: grid; place-items: center; margin: 0; padding: 32px; text-align: center; font-size: 16px; }
+.fallback[hidden] { display: none; }
+
+@media (max-width: 760px) {
+  .brand { left: 16px; top: max(14px, env(safe-area-inset-top)); }
+  .brand h1 { font-size: 34px; }
+  .clock { margin-top: 6px; font-size: 11px; }
+  .sky-dial { right: 10px; top: max(8px, env(safe-area-inset-top)); }
+  #dial { width: 92px; height: 92px; }
+  .dial-actions .chip.small { min-height: 32px; padding: 0 10px; font-size: 11px; }
+  .menu-toggle { display: inline-flex; position: absolute; right: 16px; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 150px); }
+  .controls {
+    top: auto; transform: none; right: 16px; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 202px);
+    opacity: 0; visibility: hidden; transition: opacity var(--t) var(--ease-out), visibility 0s linear var(--t);
+  }
+  .controls.open { opacity: 1; visibility: visible; transition: opacity var(--t) var(--ease-out); }
+  .flock { width: 100%; bottom: max(10px, env(safe-area-inset-bottom)); }
+  .flock-label { margin: 0 22px 6px; font-size: 11px; }
+  .cards { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 12px; padding: 6px; border-radius: 18px; scrollbar-width: none; touch-action: pan-x; }
+  .cards::-webkit-scrollbar { display: none; }
+  .card { flex: 0 0 auto; width: 150px; scroll-snap-align: start; padding: 8px 10px 10px; touch-action: pan-x; }
+  .card .name { font-size: 18px; }
+  .hint { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 208px); font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --t: 0ms; }
+  #ui, .hint, .show-ui { transition: none; }
+}

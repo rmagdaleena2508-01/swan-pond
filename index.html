@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Swan Pond</title>
+  <meta name="description" content="An interactive swan pond that drifts from day into a firefly night. Release swans, touch the water, call the rain.">
+  <meta name="theme-color" content="#0f1c1a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f1c1a'/%3E%3Cpath d='M14 42c4-7 22-9 34-5 5 2 5 6 0 8-10 4-27 4-34-3z' fill='%23f3f1ea'/%3E%3Cpath d='M44 38c6-9-6-15 0-22' stroke='%23f3f1ea' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Cpath d='M45 15l8 2-8 2z' fill='%23e0622a'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-label="Swan pond. Drag across the water to make ripples."></canvas>
+
+  <div id="ui">
+    <header class="brand">
+      <h1>Swan Pond</h1>
+      <p class="clock"><span id="phase">Afternoon</span><span class="sep" aria-hidden="true"></span><span id="clockTime">16:20</span></p>
+    </header>
+
+    <section class="sky-dial" aria-label="Time of day">
+      <svg id="dial" viewBox="0 0 120 120" role="slider" tabindex="0" aria-label="Time of day" aria-valuemin="0" aria-valuemax="24" aria-valuenow="16" aria-valuetext="16:20">
+        <defs>
+          <clipPath id="above"><rect x="0" y="0" width="120" height="60"/></clipPath>
+        </defs>
+        <circle class="orbit" cx="60" cy="60" r="44"/>
+        <circle class="orbit day" cx="60" cy="60" r="44" clip-path="url(#above)"/>
+        <line class="horizon" x1="6" y1="60" x2="114" y2="60"/>
+        <circle id="moonKnob" class="moon" r="5"/>
+        <circle id="sunKnob" class="sun" r="7.5"/>
+      </svg>
+      <div class="dial-actions">
+        <button id="btnPlay" class="chip small" aria-pressed="true">Pause time</button>
+        <button id="btnJump" class="chip small">Go to night</button>
+      </div>
+    </section>
+
+    <button id="btnMenu" class="chip menu-toggle" aria-expanded="false" aria-controls="controls">Controls</button>
+    <section id="controls" class="controls" aria-label="Pond controls">
+      <button class="chip" id="btnRain" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3l-2 5M11 3L9 8M16 3l-2 5M7 11l-2 5M12 11l-2 5"/></svg>Rain</button>
+      <button class="chip" id="btnWind" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 7h10a2.5 2.5 0 1 0-2.5-2.5M2 11h14a2.5 2.5 0 1 1-2.5 2.5M2 15h7"/></svg>Wind</button>
+      <button class="chip" id="btnSync" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="5" cy="10" r="1.6"/><circle cx="10" cy="6" r="1.6"/><circle cx="15" cy="11" r="1.6"/><circle cx="9" cy="14" r="1.6"/></svg>Synchronous fireflies</button>
+      <span class="rule" aria-hidden="true"></span>
+      <button class="chip" id="btnCalm"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10h16M5 14h10"/></svg>Calm</button>
+      <button class="chip" id="btnClear"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 13c3-4 7-5 14-6M12 4l5 3-4 4"/></svg>Clear pond</button>
+      <span class="rule" aria-hidden="true"></span>
+      <button class="chip" id="btnSound" aria-pressed="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 8v4h3l4 3V5L6 8H3zM13 7.5a3.5 3.5 0 0 1 0 5M15.5 5a7 7 0 0 1 0 10"/></svg>Sound</button>
+      <button class="chip" id="btnHide"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5zM3 3l14 14"/></svg>Hide interface</button>
+    </section>
+
+    <nav class="flock" aria-label="Release a swan">
+      <p class="flock-label"><span>Release a swan</span><span id="count" class="count">3 of 12 on the pond</span></p>
+      <div class="cards" id="cards">
+        <button class="card" data-species="mute">
+          <svg class="sil" viewBox="0 0 64 40" aria-hidden="true"><path class="w" d="M4 31h56"/><path class="b" d="M10 30C14 22 34 20 48 24c6 1 8 6 2 9-10 4-32 4-40-3z" fill="#f3f1ea"/><path class="n" d="M46 25c6-9-6-15 0-20" stroke="#f3f1ea"/><circle cx="46.6" cy="5" r="2.4" fill="#f3f1ea"/><path d="M48.6 4l5.6 2.2-5.6 1z" fill="#e0622a"/><circle cx="48.4" cy="3.6" r="1.1" fill="#141414"/></svg>
+          <span class="name">Mute swan</span>
+          <span class="trait">Orange bill, black knob</span>
+        </button>
+        <button class="card" data-species="black">
+          <svg class="sil" viewBox="0 0 64 40" aria-hidden="true"><path class="w" d="M4 31h56"/><path class="b" d="M10 30C14 22 34 20 48 24c6 1 8 6 2 9-10 4-32 4-40-3z" fill="#26232a"/><path class="n" d="M46 25c7-10-7-16 0-21" stroke="#26232a"/><circle cx="46.6" cy="4" r="2.4" fill="#26232a"/><path d="M48.6 3l5.8 2.2-5.8 1z" fill="#c21f2c"/><path d="M52.6 4.2v1.6" stroke="#f2f0ea" stroke-width="1"/></svg>
+          <span class="name">Black swan</span>
+          <span class="trait">Red bill, white band</span>
+        </button>
+        <button class="card" data-species="whooper">
+          <svg class="sil" viewBox="0 0 64 40" aria-hidden="true"><path class="w" d="M4 31h56"/><path class="b" d="M10 30C14 22 34 20 48 24c6 1 8 6 2 9-10 4-32 4-40-3z" fill="#f4f3ee"/><path class="n" d="M46 25c1-8 0-14 1-20" stroke="#f4f3ee"/><circle cx="47.4" cy="5" r="2.4" fill="#f4f3ee"/><path d="M49.2 4l5.6 2.2-5.6 1z" fill="#151515"/><path d="M49.2 4l2.6 1-2.6 2z" fill="#f0cf2c"/></svg>
+          <span class="name">Whooper swan</span>
+          <span class="trait">Yellow wedge, upright neck</span>
+        </button>
+        <button class="card" data-species="trumpeter">
+          <svg class="sil" viewBox="0 0 64 40" aria-hidden="true"><path class="w" d="M4 31h56"/><path class="b" d="M8 30C12 21 34 19 49 23c7 1 9 7 2 10-11 4-34 4-43-3z" fill="#f1f0ea"/><path class="n" d="M47 24c2-8-1-13 1-20" stroke="#f1f0ea"/><circle cx="48.4" cy="4" r="2.5" fill="#f1f0ea"/><path d="M50.2 3l6 2.2-6 1z" fill="#141414"/></svg>
+          <span class="name">Trumpeter swan</span>
+          <span class="trait">All-black bill, largest</span>
+        </button>
+      </div>
+    </nav>
+
+    <p id="hint" class="hint" role="status">Drag across the water to make ripples. Tap a swan below to release it, or drag it to the spot you want.</p>
+  </div>
+
+  <button id="btnShow" class="chip show-ui" aria-label="Show interface">Show interface</button>
+  <div id="ghost" class="ghost" aria-hidden="true"></div>
+  <p id="fallback" class="fallback" hidden>This pond needs WebGL 2. Try a recent version of Chrome, Safari, Firefox or Edge.</p>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
