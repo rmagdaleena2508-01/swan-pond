@@ -2,6 +2,8 @@
 
 An interactive swan pond in the browser, built with Three.js and WebGL. The pond moves from day through dusk into a firefly night. Release swans, touch the water, and call the rain or wind.
 
+**Live site: [rmagdaleena2508-01.github.io/swan-pond](https://rmagdaleena2508-01.github.io/swan-pond/)**
+
 ## Run it
 
 It is a static site with no build step. Serve the folder with any static server, for example:
