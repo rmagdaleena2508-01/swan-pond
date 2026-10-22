@@ -85,7 +85,7 @@ export class Rain {
   }
 
   respawn(i, y = 14) {
-    const r = Math.sqrt(Math.random()) * 26, th = Math.random() * Math.PI * 2;
+    const r = Math.sqrt(Math.random()) * 16, th = Math.random() * Math.PI * 2;
     this.drops[i * 4] = Math.cos(th) * r;
     this.drops[i * 4 + 1] = y;
     this.drops[i * 4 + 2] = Math.sin(th) * r;
@@ -117,7 +117,7 @@ export class Rain {
     // Most drops are too small to see as streaks but still pock the surface.
     const extra = Math.floor(260 * this.amount * dt) + (Math.random() < (260 * this.amount * dt) % 1 ? 1 : 0);
     for (let k = 0; k < extra; k++) {
-      const x = (Math.random() - 0.5) * 36, z = (Math.random() - 0.5) * 36;
+      const x = (Math.random() - 0.5) * 22, z = (Math.random() - 0.5) * 22;
       if (shoreDist(x, z) > 0) sim.drop(x, z, 0.11, -0.004 - Math.random() * 0.003);
     }
     this.lines.geometry.attributes.position.needsUpdate = true;

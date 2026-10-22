@@ -1,6 +1,6 @@
 # Swan Pond
 
-An interactive swan pond in the browser, built with Three.js and WebGL. The pond moves from day through dusk into a firefly night. Release swans, touch the water, and call the rain or wind.
+An interactive swan pond in the browser, built with Three.js and WebGL and painted in the manner of Monet's water lilies. You look down on teal water framed by flowering azaleas, with warm white swans and drifting golden pollen. The pond moves from day through dusk into a blue firefly night. Release swans, touch the water, and call the rain or wind.
 
 **Live site: [rmagdaleena2508-01.github.io/swan-pond](https://rmagdaleena2508-01.github.io/swan-pond/)**
 
@@ -37,6 +37,8 @@ Then open http://localhost:8820. Three.js 0.169.0 loads from jsDelivr through an
 | Fireflies | `src/fireflies.js` | Based on *Photinus pyralis*: yellow-green light, a flash of about 0.5 s on the upswing of a J-shaped dip, every 5 to 7 s. Synchronous mode follows *Photinus carolinus*, with bursts of 5 to 8 flashes, about 8 s of darkness, and neighbours pulling each other into step. |
 | Time of day | `src/time.js`, `src/sky.js` | One time value drives sky, sun, moon, stars, fog, light and water colour. |
 | Sound | `src/audio.js` | Everything is synthesised with Web Audio. Sound fades in and out and pauses when the tab is hidden. |
+| Painted look | `src/paint.js` | Post-process pass: a Kuwahara filter turned into dabs along a mostly level stroke field, colour-broken dabs, canvas tooth, a warm grade and a burnt rounded frame. |
+| Flowers and pollen | `src/flora.js` | Azalea canopies pinned to the four corners of the view with grass fanning out over the water, more bushes along the banks, floating petals and golden pollen specks. |
 | Interface | `src/ui.js`, `style.css` | |
 
 The renderer lowers pixel ratio, reflection resolution and bloom if frames run slow, and raises them again when there is headroom. Add `?debug` to the URL to expose the scene objects on `window`.

@@ -3,6 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 import { shoreDist } from './pond.js';
 import { WaveSim } from './sim.js';
@@ -10,7 +11,9 @@ import { PlanarReflection } from './reflection.js';
 import { createTimeState, sampleTime } from './time.js';
 import { buildSky } from './sky.js';
 import { buildWater, MAX_GLOW } from './water.js';
-import { buildTerrain, buildTrees, buildReeds, buildLilies } from './terrain.js';
+import { buildTerrain, buildReeds, buildLilies } from './terrain.js';
+import { buildBushes, buildPetals, Motes, CornerBlooms } from './flora.js';
+import { createPaintPass } from './paint.js';
 import { Flock } from './swans.js';
 import { Fireflies } from './fireflies.js';
 import { Spray, Rain } from './effects.js';
@@ -36,7 +39,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 900);
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 900);
 
 // --- World ------------------------------------------------------------------
 const sim = new WaveSim(mobile ? 176 : 256);
@@ -48,11 +51,14 @@ scene.add(sky.mesh);
 const water = buildWater(sim, reflection, mobile ? 160 : 256);
 scene.add(water.mesh);
 scene.add(buildTerrain(mobile));
-scene.add(buildTrees());
+scene.add(buildBushes(mobile));
+const corners = new CornerBlooms(scene, mobile);
 const windUniforms = { uTime: { value: 0 }, uWind: { value: 0 } };
 scene.add(buildReeds(mobile ? 1300 : 2600, windUniforms));
-const lilies = buildLilies(28);
+const lilies = buildLilies(36);
 scene.add(lilies);
+const petals = buildPetals(mobile ? 50 : 90);
+scene.add(petals);
 
 const sunLight = new THREE.DirectionalLight(0xffffff, 3);
 const moonLight = new THREE.DirectionalLight(0x9fb2ff, 0);
@@ -61,23 +67,27 @@ scene.add(sunLight, sunLight.target, moonLight, moonLight.target, hemi);
 scene.fog = new THREE.FogExp2(0x000000, 0.01);
 
 const flock = new Flock(scene, MAX_SWANS);
-flock.addSwimming('mute', -2.5, -3.5, 0.6);
-flock.addSwimming('mute', -1.2, -4.6, 0.75);
-flock.addSwimming('whooper', 4, 1.5, -2.2);
+flock.addSwimming('mute', -1.6, -1.6, 0.6);
+flock.addSwimming('mute', -0.6, -2.6, 0.75);
+flock.addSwimming('whooper', 2.4, 1.0, -2.2);
 flock.pairUp(flock.swans[0]);
 
 const glowPos = water.uniforms.uGlowPos.value;
 const glowI = water.uniforms.uGlowI.value;
-const fireflies = new Fireflies(scene, mobile ? 70 : 140, mobile ? 3 : 6);
+const fireflies = new Fireflies(scene, mobile ? 110 : 220, mobile ? 3 : 6);
 const spray = new Spray(scene, 700);
 const rain = new Rain(scene, mobile ? 260 : 600);
+const motes = new Motes(scene, mobile ? 40 : 70);
 const audio = new PondAudio();
 
 // --- Post-processing ---------------------------------------------------------
 const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType }));
 composer.addPass(new RenderPass(scene, camera));
-const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.4, 0.45, 1.8);
+// Lower threshold than a photoreal scene: swans and blossoms get a soft painted glow.
+const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.35, 0.6, 1.05);
 composer.addPass(bloom);
+const paint = new ShaderPass(createPaintPass(mobile ? 2 : 3));
+composer.addPass(paint);
 composer.addPass(new OutputPass());
 
 // --- Quality ------------------------------------------------------------------
@@ -107,20 +117,27 @@ function resize() {
   const scale = h * pr * 0.9;
   fireflies.uniforms.uScale.value = scale;
   spray.uniforms.uScale.value = scale;
+  motes.uniforms.uScale.value = scale;
+  paint.uniforms.uRes.value.set(w * pr, h * pr);
+  // Keep brush dabs a similar size on screen whatever the pixel ratio.
+  paint.uniforms.uSpacing.value = 1.3 * pr;
 }
 addEventListener('resize', resize);
 
 // --- Camera -------------------------------------------------------------------
-const camTarget = new THREE.Vector3(0, 0, -1.2);
+// Looking almost straight down on the water, like a painter at the edge of a
+// bridge. The view is cropped so the pond fills it and the banks only show at the edges.
+const camTarget = new THREE.Vector3();
 function placeCamera(t) {
   const aspect = camera.aspect;
-  const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const span = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
   const o = window.camOverride;
-  const dist = o ? o.dist : Math.max(33, 21 / (2 * tan * aspect));
+  // Frame corners land on the banks at any screen shape, so the flowering bushes always frame the water.
+  const dist = o ? o.dist : 17 / (span * Math.sqrt(1 + aspect * aspect));
   const drift = reducedMotion ? 0 : 1;
-  const yaw = o ? o.yaw : Math.sin(t * 0.021) * 0.07 * drift;
-  const elev = THREE.MathUtils.degToRad(o ? o.elev : (aspect < 0.8 ? 54 : 37) + Math.sin(t * 0.017) * 1.5 * drift);
-  if (o) camTarget.set(o.x, 0, o.z); else camTarget.set(0, 0, -1.2);
+  const yaw = o ? o.yaw : Math.sin(t * 0.021) * 0.04 * drift;
+  const elev = THREE.MathUtils.degToRad(o ? o.elev : 66 + Math.sin(t * 0.017) * 1.2 * drift);
+  if (o) camTarget.set(o.x, 0, o.z); else camTarget.set(Math.sin(t * 0.013) * 0.4 * drift, 0, 0.6);
   camera.position.set(
     camTarget.x + Math.sin(yaw) * Math.cos(elev) * dist,
     camTarget.y + Math.sin(elev) * dist,
@@ -248,6 +265,8 @@ function update(dt) {
   flock.update(dt, ctx);
   if (ui) ui.renderCount(flock.count, MAX_SWANS);
   lilies.userData.update(sim, dt);
+  petals.userData.update(sim, dt, state.wind, elapsed);
+  motes.update(dt, sim, Math.max(0, 1 - time.night * 1.5) * (1 - rain.amount * 0.7), state.wind, elapsed);
   spray.update(dt, sim);
   const rainDim = 1 - rain.amount * 0.45;
   rain.update(dt, sim, state.wind, time.sky);
@@ -301,6 +320,8 @@ function update(dt) {
   ui.renderTime(state.t, time.night);
 
   placeCamera(elapsed);
+  camera.updateMatrixWorld();
+  corners.update(camera, camTarget);
 }
 
 function render() {
