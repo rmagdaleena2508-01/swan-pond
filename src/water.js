@@ -32,7 +32,7 @@ export function buildWater(sim, reflection, segments) {
     uFogDensity: { value: 0.01 },
     uWind: { value: 0 },
     uRain: { value: 0 },
-    uNS: { value: 3.5 },
+    uNS: { value: 7.0 },
     uGlowPos: { value: Array.from({ length: MAX_GLOW }, () => new THREE.Vector3(0, -50, 0)) },
     uGlowI: { value: new Float32Array(MAX_GLOW) },
     uGlowColor: { value: new THREE.Color('#c9f24a') },
@@ -134,13 +134,11 @@ export function buildWater(sim, reflection, segments) {
         vec3 sigma = vec3(0.62, 0.24, 0.42);
         vec3 T = exp(-sigma * path);
         float sunUp = max(uSunDir.y, 0.0);
-        vec3 light = uSunColor * uSunI * sunUp * 0.32 + uAmbient * 0.55 + vec3(0.55, 0.62, 0.8) * uMoon * 0.25;
+        vec3 light = uSunColor * uSunI * sunUp * 0.32 + uAmbient * 0.55 + vec3(0.55, 0.62, 0.8) * uMoon * 0.05;
         vec3 bed = mix(vec3(0.24, 0.2, 0.13), vec3(0.1, 0.09, 0.06), smoothstep(0.0, 1.6, depth));
         float caus = caustic(vWorld.xz * 0.55 + n.xz * 1.5, uTime * 0.8) * smoothstep(1.9, 0.15, depth);
         bed = bed * light + caus * uSunColor * uSunI * sunUp * 0.07;
-        // Patchy algae and depth make the green-teal body uneven, as in the painting.
-        float algae = vnoise(vWorld.xz * 0.11 + 3.0) * 0.6 + vnoise(vWorld.xz * 0.37) * 0.4;
-        vec3 scatter = uDeep * (uAmbient * 0.9 + uSunColor * uSunI * sunUp * 0.25 + vec3(0.6, 0.7, 1.0) * uMoon * max(uMoonDir.y, 0.0) * 2.2) * (0.75 + 0.5 * algae);
+        vec3 scatter = uDeep * (uAmbient * 0.9 + uSunColor * uSunI * sunUp * 0.25);
         vec3 body = bed * T + scatter * (1.0 - T);
 
         vec3 col = mix(body, refl, F);
@@ -148,7 +146,7 @@ export function buildWater(sim, reflection, segments) {
         // Sun and moon glitter: sharp highlights broken up by the ripples.
         vec3 Hs = normalize(uSunDir + V);
         float ns = max(dot(n, Hs), 0.0);
-        col += uSunColor * uSunI * (pow(ns, 2400.0) * 0.9 + pow(ns, 320.0) * 0.03) * smoothstep(-0.04, 0.05, uSunDir.y);
+        col += uSunColor * uSunI * (pow(ns, 2400.0) * 3.0 + pow(ns, 320.0) * 0.06) * smoothstep(-0.04, 0.05, uSunDir.y);
         vec3 Hm = normalize(uMoonDir + V);
         float nm = max(dot(n, Hm), 0.0);
         col += vec3(0.75, 0.82, 1.0) * uMoon * (pow(nm, 2400.0) * 1.6 + pow(nm, 300.0) * 0.025) * step(0.0, uMoonDir.y);

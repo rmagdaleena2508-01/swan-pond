@@ -7,13 +7,13 @@ import * as THREE from 'three';
 const TAU = Math.PI * 2;
 
 const KEYS = [
-  { e: -1.0, zen: '#03070f', hor: '#0b1322', sun: '#000000', sunI: 0, sky: '#4a5f96', gnd: '#10150f', ambI: 0.7, fog: '#0c1424', fogD: 0.009, exp: 1.45, moon: 1, stars: 1, deep: '#0d2e30' },
-  { e: -0.24, zen: '#081127', hor: '#1a2644', sun: '#000000', sunI: 0, sky: '#4a5d92', gnd: '#10140f', ambI: 0.7, fog: '#141f36', fogD: 0.008, exp: 1.35, moon: 0.9, stars: 0.85, deep: '#10312f' },
-  { e: -0.07, zen: '#2c2c62', hor: '#c06a6a', sun: '#ff5a2e', sunI: 0, sky: '#4a4a74', gnd: '#141210', ambI: 0.55, fog: '#4b3d55', fogD: 0.005, exp: 1.75, moon: 0.45, stars: 0.25, deep: '#1a3d38' },
-  { e: 0.0, zen: '#6a5f9c', hor: '#f59a5c', sun: '#ff7436', sunI: 1.1, sky: '#a38a8e', gnd: '#2b2416', ambI: 0.75, fog: '#b98670', fogD: 0.0045, exp: 1.6, moon: 0.1, stars: 0, deep: '#2a5446' },
-  { e: 0.13, zen: '#5f80be', hor: '#f6c48e', sun: '#ffc489', sunI: 2.4, sky: '#9fb2cc', gnd: '#3b3320', ambI: 0.85, fog: '#d3bfa2', fogD: 0.0045, exp: 1.15, moon: 0, stars: 0, deep: '#3b6f5c' },
-  { e: 0.42, zen: '#3e7bc6', hor: '#bcd5e8', sun: '#fff0dc', sunI: 3.1, sky: '#a9c4df', gnd: '#46402a', ambI: 1.0, fog: '#c2d5e1', fogD: 0.004, exp: 1.0, moon: 0, stars: 0, deep: '#4a8574' },
-  { e: 1.0, zen: '#2f6bbf', hor: '#b2cfe8', sun: '#fff6ea', sunI: 3.3, sky: '#a9c4df', gnd: '#46402a', ambI: 1.05, fog: '#c2d5e1', fogD: 0.004, exp: 1.0, moon: 0, stars: 0, deep: '#4c8978' },
+  { e: -1.0, zen: '#03070f', hor: '#0b1322', sun: '#000000', sunI: 0, sky: '#4a5f96', gnd: '#10150f', ambI: 0.7, fog: '#0c1424', fogD: 0.009, exp: 1.45, moon: 1, stars: 1, deep: '#020c0c' },
+  { e: -0.24, zen: '#081127', hor: '#1a2644', sun: '#000000', sunI: 0, sky: '#4a5d92', gnd: '#10140f', ambI: 0.7, fog: '#141f36', fogD: 0.008, exp: 1.35, moon: 0.9, stars: 0.85, deep: '#041312' },
+  { e: -0.07, zen: '#2c2c62', hor: '#c06a6a', sun: '#ff5a2e', sunI: 0, sky: '#4a4a74', gnd: '#141210', ambI: 0.55, fog: '#4b3d55', fogD: 0.005, exp: 1.75, moon: 0.45, stars: 0.25, deep: '#081a18' },
+  { e: 0.0, zen: '#6a5f9c', hor: '#f59a5c', sun: '#ff7436', sunI: 1.1, sky: '#a38a8e', gnd: '#2b2416', ambI: 0.75, fog: '#b98670', fogD: 0.0045, exp: 1.6, moon: 0.1, stars: 0, deep: '#0d2721' },
+  { e: 0.13, zen: '#5f80be', hor: '#f6c48e', sun: '#ffc489', sunI: 2.4, sky: '#9fb2cc', gnd: '#3b3320', ambI: 0.85, fog: '#d3bfa2', fogD: 0.0045, exp: 1.15, moon: 0, stars: 0, deep: '#103329' },
+  { e: 0.42, zen: '#3e7bc6', hor: '#bcd5e8', sun: '#fff0dc', sunI: 3.1, sky: '#a9c4df', gnd: '#46402a', ambI: 1.0, fog: '#c2d5e1', fogD: 0.004, exp: 1.0, moon: 0, stars: 0, deep: '#12382e' },
+  { e: 1.0, zen: '#2f6bbf', hor: '#b2cfe8', sun: '#fff6ea', sunI: 3.3, sky: '#a9c4df', gnd: '#46402a', ambI: 1.05, fog: '#c2d5e1', fogD: 0.004, exp: 1.0, moon: 0, stars: 0, deep: '#133b31' },
 ];
 const COLOR_KEYS = ['zen', 'hor', 'sun', 'sky', 'gnd', 'fog', 'deep'];
 const NUM_KEYS = ['sunI', 'ambI', 'fogD', 'exp', 'moon', 'stars'];
@@ -29,8 +29,7 @@ export function createTimeState() {
 export function sampleTime(t, s) {
   s.t = t;
   const a = (t - 0.25) * TAU;
-  // The sun stays behind the viewer, lighting the pond softly without a glare path.
-  s.sunDir.set(Math.cos(a) * 0.6, Math.sin(a) * 0.8, 0.55).normalize();
+  s.sunDir.set(Math.cos(a) * 0.6, Math.sin(a) * 0.8, -0.7).normalize();
   s.moonDir.set(-Math.cos(a) * 0.5, -Math.sin(a) * 0.72, -0.78).normalize();
   const e = Math.sin(a);
   s.e = e;

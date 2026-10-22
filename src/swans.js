@@ -14,10 +14,10 @@ const TAU = Math.PI * 2;
 const SEG = 8;
 
 export const SPECIES = {
-  mute: { name: 'Mute swan', body: '#f6e9df', glow: true, billBase: '#1c1c1c', billTip: '#e0622a', baseLen: 0.022, knob: true, scale: 1.0, neckLen: 0.86, pose: 'S', territorial: true, call: 'hiss' },
+  mute: { name: 'Mute swan', body: '#f3f1ea', billBase: '#1c1c1c', billTip: '#e0622a', baseLen: 0.022, knob: true, scale: 1.0, neckLen: 0.86, pose: 'S', territorial: true, call: 'hiss' },
   black: { name: 'Black swan', body: '#1d1b1f', billBase: '#c21f2c', billTip: '#c21f2c', baseLen: 0.05, band: true, scale: 0.86, neckLen: 0.92, pose: 'S', territorial: true, primaries: '#f1f0ec', call: 'whistle' },
-  whooper: { name: 'Whooper swan', body: '#f7ebe1', glow: true, billBase: '#f0cf2c', billTip: '#151515', baseLen: 0.07, scale: 0.95, neckLen: 0.8, pose: 'straight', territorial: false, call: 'bugle' },
-  trumpeter: { name: 'Trumpeter swan', body: '#f5e8de', glow: true, billBase: '#141414', billTip: '#141414', baseLen: 0.04, scale: 1.12, neckLen: 0.9, pose: 'upright', territorial: false, call: 'bugle' },
+  whooper: { name: 'Whooper swan', body: '#f4f3ee', billBase: '#f0cf2c', billTip: '#151515', baseLen: 0.07, scale: 0.95, neckLen: 0.8, pose: 'straight', territorial: false, call: 'bugle' },
+  trumpeter: { name: 'Trumpeter swan', body: '#f1f0ea', billBase: '#141414', billTip: '#141414', baseLen: 0.04, scale: 1.12, neckLen: 0.9, pose: 'upright', territorial: false, call: 'bugle' },
 };
 
 // Neck bone pitch angles (radians, + leans forward) and absolute bill pitch from vertical.
@@ -188,9 +188,7 @@ export class Swan {
     this.root.scale.setScalar(spec.scale);
     this.body = new THREE.Group();
     this.root.add(this.body);
-    // White plumage scatters warm light, so the birds glow peach at the edges.
-    const bodyMat = mat(spec.body, spec.glow ? { emissive: '#eaa47e', emissiveIntensity: 0.1 } : {});
-    this.bodyMat = bodyMat;
+    const bodyMat = mat(spec.body);
     const bodyMesh = new THREE.Mesh(bodyGeometry(), bodyMat);
     bodyMesh.position.y = 0.1;
     this.body.add(bodyMesh);
@@ -299,7 +297,7 @@ export class Swan {
     if (night > 0.6) {
       if (r < 0.68) {
         const th = Math.atan2(this.pos.z, this.pos.x);
-        const rr = pondRadius(th) - 1.8;
+        const rr = pondRadius(th) - 2.6;
         this.target = [Math.cos(th) * rr, Math.sin(th) * rr];
         this.setActivity('rest', rand(25, 50));
       } else if (r < 0.88) this.setActivity('cruise', rand(8, 16));
@@ -337,12 +335,12 @@ export class Swan {
     let dx = Math.sin(h + this.wander), dz = Math.cos(h + this.wander);
 
     // Shore avoidance: look ahead and bend back towards open water.
-    for (const look of [1.6, 3.2]) {
+    for (const look of [2, 4]) {
       const px = this.pos.x + fx * look, pz = this.pos.z + fz * look;
       const s = shoreDist(px, pz);
-      if (s < 2.2) {
+      if (s < 3) {
         const r = Math.hypot(px, pz) || 1;
-        const push = ((2.2 - s) / 2.2) * (look < 2 ? 2.6 : 1.4);
+        const push = ((3 - s) / 3) * (look === 2 ? 2.4 : 1.4);
         dx -= (px / r) * push; dz -= (pz / r) * push;
       }
     }
@@ -557,7 +555,7 @@ export class Swan {
       this.wing.flap = 0.3;
     } else {
       this.yawRate = damp(this.yawRate, 0, 3, dt);
-      this.speed += (this.state === 'climb' ? 1.2 : 2.5) * dt;
+      this.speed += (this.state === 'climb' ? 1.2 : 1.8) * dt;
       this.wing.open = damp(this.wing.open, 1, 5, dt);
       this.wing.flap = 1;
       this.wing.freq = 3.2;
@@ -623,8 +621,6 @@ export class Swan {
       if (this.activity === 'busk') { open = 0.42; lift = 0.95; }
       else if (this.activity === 'flap') { open = Math.min(1, this.actAge * 2) * (this.actAge < this.actTime - 0.5 ? 1 : 0); lift = 0.3; }
       else if (this.sailing > 0) { open = 0.3; lift = 0.75; }
-      // Mute swans swim with their wings half-raised in a soft arch over the back.
-      else if (this.key === 'mute' && this.activity !== 'rest' && this.activity !== 'feed') { open = 0.17; lift = 0.55; }
       else { open = 0; lift = 0.15; }
     }
     this.wingOpen = damp(this.wingOpen || 0, open, 4, dt);
@@ -680,19 +676,19 @@ export class Flock {
   release(key, point) {
     if (this.swans.length >= this.max) return null;
     let x, z;
-    if (point) [x, z] = clampToWater(point[0], point[1], 2.2);
+    if (point) [x, z] = clampToWater(point[0], point[1], 3.2);
     else {
       for (let i = 0; i < 40; i++) {
-        const th = Math.random() * TAU, r = Math.sqrt(Math.random()) * 6.5;
+        const th = Math.random() * TAU, r = Math.sqrt(Math.random()) * 11;
         x = Math.cos(th) * r; z = Math.sin(th) * r;
-        if (shoreDist(x, z) > 2.6 && this.swans.every((o) => Math.hypot(o.pos.x - x, o.pos.z - z) > 2.4)) break;
+        if (shoreDist(x, z) > 4 && this.swans.every((o) => Math.hypot(o.pos.x - x, o.pos.z - z) > 3)) break;
       }
     }
     // Approach from the far side, towards the viewer, with clear water ahead to ski on.
     let approach = 0, best = -1;
     for (let i = 0; i < 24; i++) {
       const a = (Math.random() - 0.5) * 2.2;
-      const room = shoreDist(x + Math.sin(a) * 4, z + Math.cos(a) * 4);
+      const room = shoreDist(x + Math.sin(a) * 5, z + Math.cos(a) * 5);
       const score = Math.min(room, 3) - Math.abs(a) * 0.4;
       if (score > best) { best = score; approach = a; }
     }
@@ -715,8 +711,6 @@ export class Flock {
 
   update(dt, ctx) {
     ctx.swans = this.swans;
-    // The warm glow is sunlight scattering in the plumage, so it fades after dusk.
-    for (const s of this.swans) if (s.spec.glow) s.bodyMat.emissiveIntensity = 0.1 * (1 - ctx.time.night * 0.9);
     for (const s of this.swans) s.update(dt, ctx);
     for (let i = this.swans.length - 1; i >= 0; i--) {
       const s = this.swans[i];

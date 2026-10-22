@@ -1,11 +1,10 @@
 // Pond shape, depth and ground height. Shared by the terrain, the water
 // simulation and the swans so every system agrees on where the shore is.
 
-export const DOMAIN = 25; // side length (m) of the simulated water square, centred on 0
+export const DOMAIN = 40; // side length (m) of the simulated water square, centred on 0
 
 export function pondRadius(theta) {
-  // An intimate garden pond, about 17 m across.
-  return 8.2 + 1.25 * Math.sin(2 * theta + 1.0) + 0.8 * Math.sin(3 * theta + 2.3) + 0.45 * Math.sin(5 * theta + 0.7);
+  return 12.8 + 2.0 * Math.sin(2 * theta + 1.0) + 1.3 * Math.sin(3 * theta + 2.3) + 0.7 * Math.sin(5 * theta + 0.7);
 }
 
 // Positive inside the pond: approximate distance (m) to the shore.
@@ -16,7 +15,7 @@ export function shoreDist(x, z) {
 export function waterDepth(x, z) {
   const s = shoreDist(x, z);
   if (s <= 0) return 0;
-  return Math.min(2.2, s * 0.32 + s * s * 0.02);
+  return Math.min(2.6, s * 0.3 + s * s * 0.012);
 }
 
 function hash2(i, j) {

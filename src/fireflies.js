@@ -27,9 +27,9 @@ export class Fireflies {
     this.amount = 0;
     this.flies = [];
     for (let i = 0; i < count; i++) {
-      const overWater = Math.random() < 0.45;
+      const overWater = Math.random() < 0.16;
       const th = Math.random() * Math.PI * 2;
-      const r = pondRadius(th) + (overWater ? -rand(0.6, 5.5) : rand(-0.5, 3));
+      const r = pondRadius(th) + (overWater ? -rand(0.8, 5) : rand(-0.5, 6.5));
       const home = new THREE.Vector3(Math.cos(th) * r, 0, Math.sin(th) * r);
       this.flies.push({
         pos: new THREE.Vector3(home.x, rand(0.35, 1.8), home.z),
